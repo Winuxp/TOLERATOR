@@ -7,7 +7,7 @@ from calcul import calculer, calculer_thermique, MATERIAUX, ALESAGES, ARBRES, cl
 
 st.set_page_config(page_title="Tolerator", page_icon="⚙️", layout="wide")
 st.markdown("### Tolerator · Shaft / hole fits")
-st.caption("Version 2.1")
+st.caption("Version 2.2")
 # Conserver les diamètres même quand leurs champs changent de disposition.
 for cle in ("nominal_alesage", "nominal_arbre"):
     if cle not in st.session_state:
@@ -245,7 +245,7 @@ with resultats:
     svg += '<rect x="125" y="352" width="14" height="14" fill="#bfdbfe" stroke="#2563eb"/><text x="146" y="364" font-size="13">Hub</text>'
     svg += '<rect x="270" y="352" width="14" height="14" fill="#5eead4" stroke="#0f766e"/><text x="291" y="364" font-size="13">Shaft</text>'
     svg += '<rect x="405" y="352" width="14" height="14" fill="#ef4444"/><text x="426" y="364" font-size="13">Interference</text></g></svg>'
-    st.image(svg)
+    st.image(svg, use_container_width=True)
     st.caption("Min./Max. values are diametral; radial clearance is half this value. Red shows theoretical overlap before assembly; deformation is not calculated.")
     if thermique:
         with st.expander("Thermal comparison — nominal / hot / cold", expanded=False):
