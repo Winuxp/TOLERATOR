@@ -6,8 +6,39 @@ import streamlit as st
 from calcul import calculer, calculer_thermique, MATERIAUX, ALESAGES, ARBRES, classes_disponibles, DATA
 
 st.set_page_config(page_title="Tolerator", page_icon="⚙️", layout="wide")
-st.markdown("### Tolerator · Shaft / hole fits")
-st.caption("Version 2.2")
+
+def readme_text():
+    intro = "# Tolerator — README\n\nBased on ISO 286-2:2010 with applicable Cor 1:2013 corrections. Nominal diameters up to 500 mm.\n\n"
+    calculation = '## Calculation and tolerance data\n\n**Uppercase: hole. Lowercase: shaft.**\n\nLimit dimension = nominal diameter + deviation in µm / 1,000.\n\nMinimum difference = minimum hole − maximum shaft.\n\nMaximum difference = maximum hole − minimum shaft.\n\nFor H, EI = 0. For h, es = 0. The tolerance width is the selected IT grade.\n\n**Scope:** classes tabulated in ISO 286-2:2010, Tables 2–32, up to 500 mm,\nincluding CD/EF/FG, JS/js and ZA/ZB/ZC. J9–J18 follow Table 8 note a.\nOnly classes tabulated for each part’s nominal diameter are offered. Undefined combinations are not extrapolated.\nGrades IT01/IT0 have widths in Table 1 but no lettered classes in Tables 2–32, so they are not invented here.\nEach part uses its own nominal size range. Both cross-sections use the same amplification.\nNegative differences mean interference. Dimensions and differences are rounded to 1 µm for display;\ncalculations and fit classification use unrounded values.\n\nData extracted from the supplied ISO 286-2:2010 PDF, with applicable official Cor 1:2013 corrections.\nOne additional inconsistent za11 cell (225–250 mm) is reconciled using IT11 and the paired ZA11 table; see the correction log below.\nDisplay is rounded to 1 µm; fine-grade and JS/js half-micrometre values are retained internally.\n\n[Official 2013 corrigendum](https://www.iso.org/obp/ui?_escaped_fragment_=iso:std:iso:286:-2:ed-2:v1:cor:1:v1:en)\n\n'
+    thermal = '## Thermal model and material presets\n\n**D(T) = D(T₀) × [1 + α × 10⁻⁶ × (T − T₀)]**, with α entered in µm/m/K.\n\nExpansion is applied to the limit dimensions calculated at T₀. ISO tables are not re-evaluated at the expanded diameter.\n\nLinear model with constant coefficients, free expansion and uniform temperature shared by both parts.\nNo gradients, interference-induced deformation or temperature dependence of α are calculated.\n\nMaterial presets are indicative: steel 12, aluminium 23, titanium 8.4 and austenitic stainless steel 17 µm/m/K.\nFerritic and martensitic stainless steels may differ substantially. Use your material datasheet.\n\nSources: [Nippon Steel](https://www.nipponsteel.com/en/product/titan/feature/pdf/T001en_16-23.pdf), [BSSA](https://bssa.org.uk/bssa_articles/elevated-temperature-physical-properties-of-stainless-steels/).\n\n'
+    graph = "## Graphic\n\nThe two cross-sections show minimum hole / maximum shaft and maximum hole / minimum shaft. Deviations are amplified using the same scale in both views. The drawing is not to scale. Values are diametral; radial clearance is half the diametral difference. Red indicates theoretical interference before assembly, without elastic deformation.\n\n"
+    coverage = f"## Coverage and correction log\n\n{len(ALESAGES)} hole classes · {len(ARBRES)} shaft classes · {sum(map(len, DATA['classes'].values()))} tabulated size intervals. Each row records its source PDF page (1-based).\n\n"
+    columns = ['Tolerance', 'Above (mm)', 'Up to (mm)', 'Field', 'Original (µm)', 'Used (µm)', 'Basis']
+    table = '| ' + ' | '.join(columns) + ' |\n|' + '|'.join(['---']*len(columns)) + '|\n'
+    for row in DATA['corrections']:
+        vals = [row['tolerance'], row['above_mm'], row['up_to_mm'], row['field'], row['original_um'], row['used_um'], row['basis']]
+        table += '| ' + ' | '.join(str(v).replace('|', '/') for v in vals) + ' |\n'
+    return intro + calculation + thermal + graph + coverage + table
+
+@st.dialog("README", width="large")
+def show_readme():
+    content = readme_text()
+    st.markdown(content)
+    st.download_button("Download README.md", content, file_name="README.md", mime="text/markdown", key="download_readme")
+
+st.markdown("""<style>
+.st-key-readme_link button {background:transparent;border:0;padding:0;min-height:1.6rem;color:var(--text-color);text-decoration:underline;font-size:.85rem;}
+.st-key-readme_link button:hover {color:#e21b2d;background:transparent;}
+</style>""", unsafe_allow_html=True)
+heading, branding = st.columns([6, 1.5], vertical_alignment="center")
+with heading:
+    st.markdown("### Tolerator · Shaft / hole fits")
+    st.caption("Version 2.3 · Based on ISO 286-2:2010 · Cor 1:2013 · ≤ 500 mm")
+    if st.button("README", key="readme_link", help="Calculation, thermal model, data coverage and corrections"):
+        show_readme()
+with branding:
+    st.markdown('<div style="display:flex;justify-content:flex-end;opacity:.8" aria-label="Audi AFR, stylised Formula 1 car">\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 78" width="190" height="65" role="img" aria-label="Audi AFR">\n<g fill="none" stroke="#9099a5" stroke-width="1.7"><circle cx="18" cy="19" r="11"/><circle cx="34" cy="19" r="11"/><circle cx="50" cy="19" r="11"/><circle cx="66" cy="19" r="11"/></g>\n<text x="91" y="24" font-family="Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="2" fill="#9099a5">AUDI</text>\n<text x="151" y="24" font-family="Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="2" fill="#e21b2d">AFR</text>\n<g fill="#9099a5"><circle cx="63" cy="60" r="9"/><circle cx="161" cy="60" r="9"/>\n<path d="M40 49H47V60H40Z M45 55L80 51 97 43H115L126 49 155 53 184 56 191 60H175L151 64H83L75 61H48Z"/>\n<path d="M91 47L96 37H103V42H111L119 48Z M184 53H205V57H184Z M190 57H199V62H190Z"/></g>\n<path d="M104 39H111L118 46" fill="none" stroke="#e21b2d" stroke-width="2" stroke-linecap="round"/>\n</svg></div>', unsafe_allow_html=True)
+
 # Conserver les diamètres même quand leurs champs changent de disposition.
 for cle in ("nominal_alesage", "nominal_arbre"):
     if cle not in st.session_state:
@@ -276,47 +307,3 @@ with resultats:
     writer.writerow(['Max. difference (µm)', f"{r['jeu_max_um']:.0f}"])
     st.download_button("Export results as CSV", buffer.getvalue().encode('utf-8-sig'),
                        file_name="fit_results.csv", mime="text/csv")
-    with st.expander("Calculation and data"):
-        st.markdown("""**Uppercase: hole. Lowercase: shaft.**
-
-Limit dimension = nominal diameter + deviation in µm / 1,000.
-
-Minimum difference = minimum hole − maximum shaft.
-
-Maximum difference = maximum hole − minimum shaft.
-
-For H, EI = 0. For h, es = 0. Tolerance width is IT7 or IT6.
-
-**Scope:** classes tabulated in ISO 286-2:2010, Tables 2–32, up to 500 mm,
-including CD/EF/FG, JS/js and ZA/ZB/ZC. J9–J18 follow Table 8 note a.
-Only classes tabulated for each part’s nominal diameter are offered. Undefined combinations are not extrapolated.
-Grades IT01/IT0 have widths in Table 1 but no lettered classes in Tables 2–32, so they are not invented here.
-Each part uses its own nominal size range. Both cross-sections use the same amplification.
-Negative differences mean interference. Dimensions and differences are rounded to 1 µm for display;
-calculations and fit classification use unrounded values.
-
-Data extracted from the supplied ISO 286-2:2010 PDF, with applicable official Cor 1:2013 corrections.
-One additional inconsistent za11 cell (225–250 mm) is reconciled using IT11 and the paired ZA11 table; see the data audit below.
-Display is rounded to 1 µm; fine-grade and JS/js half-micrometre values are retained internally.
-
-[Official 2013 corrigendum](https://www.iso.org/obp/ui?_escaped_fragment_=iso:std:iso:286:-2:ed-2:v1:cor:1:v1:en)
-""")
-
-    if thermique:
-        with st.expander("Thermal model and presets"):
-            st.markdown("""**D(T) = D(T₀) × [1 + α × 10⁻⁶ × (T − T₀)]**, with α entered in µm/m/K.
-
-Expansion is applied to the limit dimensions calculated at T₀. ISO tables are not re-evaluated at the expanded diameter.
-
-Linear model with constant coefficients, free expansion and uniform temperature shared by both parts.
-No gradients, interference-induced deformation or temperature dependence of α are calculated.
-
-Material presets are indicative: steel 12, aluminium 23, titanium 8.4 and austenitic stainless steel 17 µm/m/K.
-Ferritic and martensitic stainless steels may differ substantially. Use your material datasheet.
-
-Sources: [Nippon Steel](https://www.nipponsteel.com/en/product/titan/feature/pdf/T001en_16-23.pdf), [BSSA](https://bssa.org.uk/bssa_articles/elevated-temperature-physical-properties-of-stainless-steels/).
-""")
-
-    with st.expander("ISO data coverage and corrections", expanded=False):
-        st.caption(f"{len(ALESAGES)} hole classes · {len(ARBRES)} shaft classes · up to 500 mm. Each data row retains its PDF source page.")
-        st.table(DATA['corrections'])
